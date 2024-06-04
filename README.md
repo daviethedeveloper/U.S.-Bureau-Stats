@@ -1,15 +1,10 @@
 # Data Science Labor of Statistic
 
-Brief description of what your project does and what it's used for.
+This project leverages the U.S. Bureau of Labor Statistics Public API to fetch and analyze employment data across various occupations in the United States. Designed for versatility, the codebase can be easily customized to gather and visualize employment statistics for any job title, from Data Scientists to Engineers. This tool is invaluable for policymakers, economists, job seekers, and researchers interested in understanding employment trends and wage estimates across different sectors and regions. By providing insights into occupational employment, this project aids in strategic planning, educational guidance, and economic forecasts.
 
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
-
-### Prerequisites
-
-What things you need to install the software and how to install them.
-
 
 
 ## Using the Public API from the U.S. Bureau of Labor Statistics
@@ -48,24 +43,43 @@ The code fetches employment data by state from the U.S. Bureau of Labor Statisti
 
 ![Visualization Example](path/to/your/screenshot2.png)
 
+
+## Customizing the Code for Different Job Titles
+
+### Overview
+The code provided in this repository is initially configured to fetch and analyze employment data for a specific occupation but can be easily adapted to gather data for other occupations. This flexibility allows users to explore employment trends across various professions in the U.S.
+
+### Example: Fetching Data for Data Scientists
+
+To tailor the code for fetching employment data for Data Scientists, you will need to modify the `seriesid` used in the API request to correspond to the series ID for Data Scientists. You can find the appropriate series ID by visiting the [Occupational Employment Statistics](https://www.bls.gov/oes/) page on the BLS website.
+
+1. Locate the series ID for Data Scientists or any other occupation by navigating through the BLS's tables or using their search function.
+2. Replace the `seriesid` in the `get_state_data()` function with the series ID of the desired occupation.
+
+```r
+# Example of modified function call for Data Scientists
+seriesid_list <- c("specific_series_id_for_data_scientists")
+state_name <- "Your_State"
+api_key <- 'YOUR_API_KEY_HERE'
+url <- 'https://api.bls.gov/publicAPI/v2/timeseries/data/'
+
+data_scientists_df <- get_state_data(seriesid_list, state_name, api_key, url)
+```
+3. Run the code to fetch and visualize the employment data for Data Scientists.
+This approach can be applied to any occupation by changing the seriesid to match the occupation's specific identifier provided by the BLS.
+
 ## Results
 
 When you run the `.qmd` file with your API key, you will generate visualizations similar to the ones shown below:
 
 ![Generated Graph](path/to/your/screenshot3.png)
 
+The visualization part of the code will automatically adapt to the new data, enabling comparative analyses and insights across different sectors and job titles.
+
+
 ## Contributing
 
 Please read [CONTRIBUTING.md](path/to/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-- Hat tip to anyone whose code was used
-- Inspiration
-- etc
 
 
