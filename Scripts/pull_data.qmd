@@ -1,0 +1,229 @@
+---
+title: "API - Project"
+subtitle: "U.S. Bureau of Labor Statistics"
+author: "David Pineda"
+uses: quarto-dev/quarto-actions/publish@v2
+with:
+  target: gh-pages
+  to: html # If set, it will be equivalent to `quarto render --to html`
+  path: source-folder # By default, the current working dir is used i.e `quarto render .`
+#jupyter: python3
+format: #hugo-md
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-copy: true
+    code-fold: true
+    code-line-numbers: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute:
+    warning: false
+---
+
+# Introduction
+
+This project utilizes data provided by the U.S. Bureau of Labor Statistics (BLS) to analyze employment trends across various states in the U.S. The data includes detailed occupational employment and wage estimates which are essential for understanding labor market dynamics.
+
+# Data Source
+
+The data for this analysis is sourced from the U.S. Bureau of Labor Statistics through their public API. Detailed information about how to access this data and the structure of the API can be found [here](https://www.bls.gov/developers/api_r.htm).
+
+These estimates are calculated with data collected from employers in all industry sectors, all metropolitan and nonmetropolitan areas, and all states and the District of Columbia. The top employment and wage figures are provided above. The complete list is available in the downloadable XLS files.
+
+The percentile wage estimate is the value of a wage below which a certain percent of workers fall. The median wage is the 50th percentile wage estimate---50 percent of workers earn less than the median and 50 percent of workers earn more than the median. More about percentile wages.
+
+(1) Estimates for detailed occupations do not sum to the totals because the totals include occupations not shown separately. Estimates do not include self-employed workers.
+
+(2) Annual wages have been calculated by multiplying the hourly mean wage by a "year-round, full-time" hours figure of 2,080 hours; for those occupations where there is not an hourly wage published, the annual wage has been directly calculated from the reported survey data.
+
+(3) The relative standard error (RSE) is a measure of the reliability of a survey statistic. The smaller the relative standard error, the more precise the estimate.
+
+(4) Estimate not released.
+
+(5) The location quotient is the ratio of the area concentration of occupational employment to the national average concentration. A location quotient greater than one indicates the occupation has a higher share of employment than average, and a location quotient less than one indicates the occupation is less prevalent in the area than average.
+
+Example pull [API](https://www.bls.gov/developers/api_r.htm)
+
+```{r warning=FALSE}
+library(httr)
+library(tidyverse)
+library(glue)
+library(tibble)
+library(dplyr)
+library(plotly)
+library(pander)
+```
+
+```{r}
+api_key = 'Your API Here'
+url = 'https://api.bls.gov/publicAPI/v2/timeseries/data/'
+
+```
+
+# Data Acquisition and Preparation
+
+## Function to Fetch Data
+
+This function is designed to retrieve data based on a series of IDs and state names:
+
+```{r}
+# Function to get data based on seriesid and state name
+get_state_data <- function(seriesid_list, state_name, api_key, url) {
+  # Prepare the payload
+  payload <- list(
+    seriesid = seriesid_list,
+    startyear = "2023",
+    endyear = "2023",
+    registrationkey = api_key
+  )
+  
+  # Make the POST request
+  response <- POST(url = url,
+                   body = payload,
+                   content_type("application/json"),
+                   encode = "json")
+  
+  # Parse the response
+  list_obj <- content(response, "text") %>% 
+    jsonlite::fromJSON()
+  
+  # Convert response to dataframe
+  df <- map_dfr(list_obj$Results$series$data, ~ tibble(
+    year = .x[[1]],
+    period = .x[[2]],
+    period_type = .x[[3]],
+    is_annual = .x[[4]],
+    value = .x[[5]]
+  ))
+  
+  # Define column names
+  column_names <- c("Employment (1)", 
+                    "Employment per thousand jobs", 
+                    "Location quotient (9)", 
+                    "Hourly mean wage", 
+                    "Annual mean wage (2)")
+  
+  # Mutate dataframe to include series titles
+  df <- df %>%
+    mutate(series_title = column_names)
+  
+  # Pivot dataframe and add state information
+  state_df <- df %>% 
+    pivot_wider(
+      names_from = series_title,
+      values_from = value
+    ) %>% 
+    mutate(State = state_name) %>% 
+    select(State, `Employment (1)`, `Employment per thousand jobs`, `Location quotient (9)`, `Hourly mean wage`, `Annual mean wage (2)`)
+  
+  return(state_df)
+}
+```
+
+# Texas
+
+```{r}
+seriesid_list <- c("OEUS480000000000015205101", "OEUS480000000000015205116", "OEUS480000000000015205117", "OEUS480000000000015205103", "OEUS480000000000015205104")
+state_name <- "Texas"
+texas_df <- get_state_data(seriesid_list, state_name, api_key, url)
+```
+
+# Utah
+
+```{r}
+seriesid_list <- c("OEUS490000000000015205101", "OEUS490000000000015205116", "OEUS490000000000015205117", "OEUS490000000000015205103", "OEUS490000000000015205104")
+state_name <- "Utah"
+utah_df <- get_state_data(seriesid_list, state_name, api_key, url)
+```
+
+# New York
+
+```{r}
+seriesid_list <- c("OEUS360000000000015205101", "OEUS360000000000015205116", "OEUS360000000000015205117", "OEUS360000000000015205103", "OEUS360000000000015205104")
+state_name <- "New_York"
+ny_df <- get_state_data(seriesid_list, state_name, api_key, url)
+```
+
+# Florida
+
+```{r}
+seriesid_list <- c("OEUS120000000000015205101", "OEUS120000000000015205116", "OEUS120000000000015205117", "OEUS120000000000015205103", "OEUS120000000000015205104")
+state_name <- "Florida"
+fl_df <- get_state_data(seriesid_list, state_name, api_key, url)
+```
+
+# Pennsylvania
+
+```{r}
+seriesid_list <- c("OEUS420000000000015205101", "OEUS420000000000015205116", "OEUS420000000000015205117", "OEUS420000000000015205103", "OEUS420000000000015205104")
+state_name <- "Pennsylvania"
+pnsl_df <- get_state_data(seriesid_list, state_name, api_key, url)
+```
+
+# California
+
+```{r}
+seriesid_list <- c("OEUS060000000000015205101", "OEUS060000000000015205116", "OEUS060000000000015205117", "OEUS060000000000015205103", "OEUS060000000000015205104")
+state_name <- "California"
+cali_df <- get_state_data(seriesid_list, state_name, api_key, url)
+```
+
+# Combining Tables
+
+```{r}
+df_table <- bind_rows(cali_df, texas_df, ny_df, fl_df, pnsl_df, utah_df)
+pander(df_table)
+```
+
+```{r}
+df_long <- df_table %>%
+  pivot_longer(cols = -State, names_to = "Metric", values_to = "Value")
+
+```
+
+# Analysis and Visualization
+
+## Data visualization helps to highlight key insights and trends from the employment data:
+
+*Employment Data by State*
+
+```{r, fig.width=10, fig.height=8}
+ggplot(df_long, aes(x = State, y = Value, fill = State)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +
+  labs(title = "Employment Data by State",
+       x = NULL,
+       y = "Value") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_brewer(palette = "Set1") +
+  facet_wrap(~ Metric, scales = "free_y", ncol = 1)
+```
+
+```{r, fig.width=10, fig.height=8}
+p <- ggplot(df_long, aes(x = State, y = Value, fill = State, 
+                         text = paste("State:", State, "<br>Value:", Value, "<br>Metric:", Metric))) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +
+  labs(title = "Employment Data by State", x = NULL, y = "Value") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_brewer(palette = "Set1") +
+  facet_wrap(~ Metric, scales = "free_y", ncol = 1)
+
+
+ggplotly(p, tooltip = "text")
+```
+
+# Conclusion
+
+This analysis provided insights into employment patterns across different states in the U.S., highlighting variations in employment rates, wage levels, and occupational distribution. Understanding these trends is vital for policymakers, economists, and the general public to make informed decisions about employment and economic strategies.
