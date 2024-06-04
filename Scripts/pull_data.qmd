@@ -1,7 +1,7 @@
 ---
 title: "API - Project"
 subtitle: "U.S. Bureau of Labor Statistics"
-author: "David Pineda"
+author: "David"
 uses: quarto-dev/quarto-actions/publish@v2
 with:
   target: gh-pages
