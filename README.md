@@ -35,13 +35,7 @@ To fetch specific data, such as employment statistics for Data Scientists, you n
 
 ![BLS Data Finder](Images/Data_Finder.png)
 
-## Understanding the Code
 
-This section explains the purpose and function of the code in the Quarto (.qmd) file included in this repository.
-
-### Overview
-
-The code fetches employment data by state from the U.S. Bureau of Labor Statistics and visualizes this data using `ggplot2` and `plotly` in R.
 
 ### Key Functions
 
