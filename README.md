@@ -50,6 +50,11 @@ The code fetches employment data by state from the U.S. Bureau of Labor Statisti
 
 ![Visualization Example](Images/Chart_Example.png)
 
+
+### Map from their website
+
+![Visualization Example](Images/Map_Replication.png)
+
 ## Customizing the Code for Different Job Titles
 
 ### Overview
